@@ -35,8 +35,8 @@ export default async function handler(req, res) {
 
       console.log('Processing quote:', quoteText);
 
-      let imageUrl = DEFAULT_PLACEHOLDER_IMAGE;
-      
+      let imageUrl = `${VERCEL_OG_API}?text=${encodeURIComponent(quoteText)}&bgColor=softgreen&textColor=eggshellwhite&fontSize=bold`;
+
       if (quoteData.background) {
         try {
           const imageResponse = await axios.get(quoteData.background);
@@ -45,20 +45,17 @@ export default async function handler(req, res) {
             imageUrl = quoteData.background;
             console.log('Background image fetched successfully:', imageUrl);
           } else {
-            console.warn('ZenQuotes returned an invalid image URL. Using placeholder.');
+            console.warn('ZenQuotes returned an invalid image URL. Using custom-generated image.');
           }
         } catch (imageError) {
           console.error('Error fetching ZenQuotes background image:', imageError.response ? imageError.response.status : imageError.message);
-          console.warn('Using placeholder image instead.');
+          console.warn('Using custom-generated image instead.');
         }
       } else {
-        console.warn('No background image provided by ZenQuotes. Using placeholder.');
+        console.warn('No background image provided by ZenQuotes. Using custom-generated image.');
       }
 
-      const ogImageUrl = `${VERCEL_OG_API}?text=${encodeURIComponent(quoteText)}`;
-      console.log('Generated OG Image URL:', ogImageUrl);
-
-      const shareText = encodeURIComponent("Get your daily inspiration from this frame!");
+      const shareText = encodeURIComponent("Get your daily inspiration!/n/nFrame by @aaronv/n");
       const shareLink = `https://warpcast.com/~/compose?text=${shareText}&embeds[]=${encodeURIComponent(imageUrl)}`;
 
       res.setHeader('Content-Type', 'text/html');
@@ -67,7 +64,7 @@ export default async function handler(req, res) {
         <html>
           <head>
             <meta property="fc:frame" content="vNext" />
-            <meta property="fc:frame:image" content="${ogImageUrl}" />
+            <meta property="fc:frame:image" content="${imageUrl}" />
             <meta property="fc:frame:button:1" content="Get Another" />
             <meta property="fc:frame:post_url" content="${process.env.NEXT_PUBLIC_BASE_URL}/api/zenFrame" />
             <meta property="fc:frame:button:2" content="Share" />
