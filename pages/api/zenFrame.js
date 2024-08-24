@@ -34,16 +34,28 @@ export default async function handler(req, res) {
 
       console.log('Processing quote:', quoteText);
 
-      const htmlContent = `
+      const svgContent = `
         <svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
           <rect width="100%" height="100%" fill="#f0f8ea"/>
-          <text x="600" y="300" font-family="Arial, sans-serif" font-size="36" text-anchor="middle" fill="#333">
-            ${quoteData.q}
-          </text>
-          <text x="600" y="400" font-family="Arial, sans-serif" font-size="24" text-anchor="middle" fill="#666">
-            - ${quoteData.a}
-          </text>
+          <foreignObject x="50" y="50" width="1100" height="530">
+            <div xmlns="http://www.w3.org/1999/xhtml" style="font-family: Arial, sans-serif; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+              <p style="font-size: 46px; color: #333; max-width: 1000px; margin: 0;">${quoteData.q}</p>
+              <p style="font-size: 34px; color: #666; margin-top: 20px;">- ${quoteData.a}</p>
+            </div>
+          </foreignObject>
         </svg>
+      `;
+
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="UTF-8">
+          </head>
+          <body style="margin:0; padding:0;">
+            ${svgContent}
+          </body>
+        </html>
       `;
 
       const shareText = encodeURIComponent(`"${quoteData.q}" - ${quoteData.a}\n\nGet your daily inspiration!\n\nFrame by @aaronv`);
@@ -55,7 +67,7 @@ export default async function handler(req, res) {
         <html>
           <head>
             <meta property="fc:frame" content="vNext" />
-            <meta property="fc:frame:image" content="data:image/svg+xml;base64,${Buffer.from(htmlContent).toString('base64')}" />
+            <meta property="fc:frame:image" content="data:image/svg+xml;base64,${Buffer.from(svgContent).toString('base64')}" />
             <meta property="fc:frame:button:1" content="Get Another" />
             <meta property="fc:frame:post_url" content="${process.env.NEXT_PUBLIC_BASE_URL}/api/zenFrame" />
             <meta property="fc:frame:button:2" content="Share" />
