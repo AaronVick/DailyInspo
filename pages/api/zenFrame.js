@@ -58,7 +58,7 @@ export default async function handler(req, res) {
         </html>
       `;
 
-      const shareText = encodeURIComponent(`"${quoteData.q}" - ${quoteData.a}\n\nGet your daily inspiration!\n\nFrame by @aaronv`);
+      const shareText = encodeURIComponent("Get your daily inspiration!\n\nFrame by @aaronv\n&embeds[]=https%3A%2F%2Fhttps://daily-inspo.vercel.app");
       const shareLink = `https://warpcast.com/~/compose?text=${shareText}`;
 
       res.setHeader('Content-Type', 'text/html');
