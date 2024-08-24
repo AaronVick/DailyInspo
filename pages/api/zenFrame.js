@@ -4,8 +4,16 @@ const VERCEL_OG_API = `${process.env.NEXT_PUBLIC_BASE_URL}/api/og`;
 const DEFAULT_PLACEHOLDER_IMAGE = `${process.env.NEXT_PUBLIC_BASE_URL}/zen-placeholder.png`;
 
 async function fetchQuote() {
+  const apiUrl = 'https://zenquotes.io/api/random';
+  
   try {
-    const response = await axios.get('https://zenquotes.io/api/random');
+    const response = await axios.get(apiUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0',
+        'Content-Type': 'application/json',
+        'Origin': process.env.NEXT_PUBLIC_BASE_URL
+      }
+    });
     return response.data[0];
   } catch (error) {
     console.error('Error fetching quote:', error);
@@ -24,7 +32,6 @@ export default async function handler(req, res) {
 
       let imageUrl = DEFAULT_PLACEHOLDER_IMAGE;
       
-      // Check if the ZenQuotes API returned a valid image URL
       if (quoteData.background) {
         try {
           const imageResponse = await axios.get(quoteData.background);
