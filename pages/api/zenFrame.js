@@ -35,8 +35,7 @@ export default async function handler(req, res) {
 
       console.log('Processing quote:', quoteText);
 
-      let imageUrl = `${VERCEL_OG_API}?text=${encodeURIComponent(quoteText)}&bgColor=softgreen&textColor=eggshellwhite&fontSize=bold`;
-
+      let imageUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/og?text=${encodeURIComponent(quoteText)}&bgColor=softgreen&textColor=eggshellwhite&fontSize=48px`;
       if (quoteData.background) {
         try {
           const imageResponse = await axios.get(quoteData.background);
