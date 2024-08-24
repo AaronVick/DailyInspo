@@ -35,47 +35,15 @@ export default async function handler(req, res) {
       console.log('Processing quote:', quoteText);
 
       const htmlContent = `
-        <html>
-          <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <style>
-              body, html {
-                margin: 0;
-                padding: 0;
-                height: 100%;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                background-color: #f0f8ea;
-                font-family: Arial, sans-serif;
-              }
-              .quote-container {
-                text-align: center;
-                max-width: 80%;
-                padding: 20px;
-                background-color: rgba(255, 255, 255, 0.8);
-                border-radius: 10px;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-              }
-              .quote {
-                font-size: 24px;
-                color: #333;
-                margin-bottom: 10px;
-              }
-              .author {
-                font-size: 18px;
-                color: #666;
-              }
-            </style>
-          </head>
-          <body>
-            <div class="quote-container">
-              <div class="quote">${quoteData.q}</div>
-              <div class="author">- ${quoteData.a}</div>
-            </div>
-          </body>
-        </html>
+        <svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
+          <rect width="100%" height="100%" fill="#f0f8ea"/>
+          <text x="600" y="300" font-family="Arial, sans-serif" font-size="36" text-anchor="middle" fill="#333">
+            ${quoteData.q}
+          </text>
+          <text x="600" y="400" font-family="Arial, sans-serif" font-size="24" text-anchor="middle" fill="#666">
+            - ${quoteData.a}
+          </text>
+        </svg>
       `;
 
       const shareText = encodeURIComponent(`"${quoteData.q}" - ${quoteData.a}\n\nGet your daily inspiration!\n\nFrame by @aaronv`);
@@ -87,7 +55,7 @@ export default async function handler(req, res) {
         <html>
           <head>
             <meta property="fc:frame" content="vNext" />
-            <meta property="fc:frame:image" content="data:text/html;base64,${Buffer.from(htmlContent).toString('base64')}" />
+            <meta property="fc:frame:image" content="data:image/svg+xml;base64,${Buffer.from(htmlContent).toString('base64')}" />
             <meta property="fc:frame:button:1" content="Get Another" />
             <meta property="fc:frame:post_url" content="${process.env.NEXT_PUBLIC_BASE_URL}/api/zenFrame" />
             <meta property="fc:frame:button:2" content="Share" />
@@ -102,13 +70,12 @@ export default async function handler(req, res) {
     }
   } catch (error) {
     console.error('Error processing request:', error.message);
-    const errorImageUrl = DEFAULT_PLACEHOLDER_IMAGE;
     return res.status(200).send(`
       <!DOCTYPE html>
       <html>
         <head>
           <meta property="fc:frame" content="vNext" />
-          <meta property="fc:frame:image" content="${errorImageUrl}" />
+          <meta property="fc:frame:image" content="${DEFAULT_PLACEHOLDER_IMAGE}" />
           <meta property="fc:frame:button:1" content="Try Again" />
           <meta property="fc:frame:post_url" content="${process.env.NEXT_PUBLIC_BASE_URL}/api/zenFrame" />
         </head>
