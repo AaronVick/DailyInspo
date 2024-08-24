@@ -7,11 +7,11 @@ export default function Home() {
       <head>
         <title>ZenQuotes Farcaster Frame</title>
         <meta property="og:title" content="ZenQuotes Farcaster Frame" />
-        <meta property="og:image" content="https://your-vercel-deployment-url.com/zen.png" />
+        <meta property="og:image" content="${process.env.NEXT_PUBLIC_BASE_URL}/zen.png" />
         <meta property="fc:frame" content="vNext" />
-        <meta property="fc:frame:image" content="https://your-vercel-deployment-url.com/zen.png" />
+        <meta property="fc:frame:image" content="${process.env.NEXT_PUBLIC_BASE_URL}/zen.png" />
         <meta property="fc:frame:button:1" content="Get Your Daily Inspo" />
-        <meta property="fc:frame:post_url" content="https://your-vercel-deployment-url.com/api/zenFrame" />
+        <meta property="fc:frame:post_url" content="${process.env.NEXT_PUBLIC_BASE_URL}/api/zenFrame" />
       </head>
       <body>
         <main>
