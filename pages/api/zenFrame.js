@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const DEFAULT_PLACEHOLDER_IMAGE = `${process.env.NEXT_PUBLIC_BASE_URL}/zen-placeholder.png`;
+const IMGBB_API_KEY = process.env.IMGBB_API_KEY; // You'll need to set this in your Vercel environment variables
 
 async function fetchQuote() {
   const apiUrl = 'https://zenquotes.io/api/random';
@@ -23,45 +24,19 @@ async function fetchQuote() {
   }
 }
 
-function generateHtmlImage(quoteData) {
-  return `
-    <html>
-      <head>
-        <style>
-          body {
-            margin: 0;
-            padding: 0;
-            width: 1200px;
-            height: 630px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #f0f8ea;
-            font-family: Arial, sans-serif;
-          }
-          .quote-container {
-            text-align: center;
-            padding: 20px;
-          }
-          .quote {
-            font-size: 46px;
-            color: #333;
-            margin-bottom: 20px;
-          }
-          .author {
-            font-size: 34px;
-            color: #666;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="quote-container">
-          <div class="quote">"${quoteData.q}"</div>
-          <div class="author">- ${quoteData.a}</div>
-        </div>
-      </body>
-    </html>
-  `;
+async function generateImageUrl(quoteData) {
+  const text = `${quoteData.q} - ${quoteData.a}`;
+  const encodedText = encodeURIComponent(text);
+  const imageUrl = `https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}&image=https://placehold.co/1200x630/f0f8ea/333333?text=${encodedText}`;
+
+  try {
+    const response = await axios.post(imageUrl);
+    console.log('Image URL generated successfully');
+    return response.data.data.url;
+  } catch (error) {
+    console.error('Error generating image URL:', error.response ? error.response.status : error.message);
+    throw new Error('Failed to generate image URL');
+  }
 }
 
 export default async function handler(req, res) {
@@ -75,7 +50,7 @@ export default async function handler(req, res) {
       const quoteData = await fetchQuote();
       console.log('Processing quote:', `${quoteData.q} - ${quoteData.a}`);
 
-      const htmlImage = generateHtmlImage(quoteData);
+      const imageUrl = await generateImageUrl(quoteData);
 
       const shareText = encodeURIComponent(`Get your daily inspiration!\n\nFrame by @aaronv\n\n`);
       const shareLink = `https://warpcast.com/~/compose?text=${shareText}&embeds[]=${encodeURIComponent(process.env.NEXT_PUBLIC_BASE_URL)}`;
@@ -86,7 +61,7 @@ export default async function handler(req, res) {
         <html>
           <head>
             <meta property="fc:frame" content="vNext" />
-            <meta property="fc:frame:image" content="data:text/html;base64,${Buffer.from(htmlImage).toString('base64')}" />
+            <meta property="fc:frame:image" content="${imageUrl}" />
             <meta property="fc:frame:button:1" content="Get Another" />
             <meta property="fc:frame:post_url" content="${process.env.NEXT_PUBLIC_BASE_URL}/api/zenFrame" />
             <meta property="fc:frame:button:2" content="Share" />
