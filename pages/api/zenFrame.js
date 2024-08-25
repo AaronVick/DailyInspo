@@ -23,12 +23,33 @@ async function fetchQuote() {
   }
 }
 
+function wrapText(text, maxLength) {
+  const words = text.split(' ');
+  const lines = [];
+  let currentLine = '';
+
+  words.forEach(word => {
+    if ((currentLine + word).length <= maxLength) {
+      currentLine += (currentLine ? ' ' : '') + word;
+    } else {
+      lines.push(currentLine);
+      currentLine = word;
+    }
+  });
+  
+  if (currentLine) {
+    lines.push(currentLine);
+  }
+
+  return lines.join('\n');
+}
+
 function generateImageUrl(quoteData) {
-  const quoteText = encodeURIComponent(quoteData.q);
+  const wrappedQuote = wrapText(quoteData.q, 40); // Adjust 40 as needed for optimal line length
+  const quoteText = encodeURIComponent(wrappedQuote);
   const authorText = encodeURIComponent(`- ${quoteData.a}`);
   
-  // Using placehold.co for more formatting options
-  return `https://placehold.co/1200x630/f0f8ea/333333.png?text=${quoteText}%0A%0A${authorText}&font=arial&size=32&lineheight=1.5`;
+  return `https://placeholderapi.com/1200x630/f0f8ea/333333?text=${quoteText}%0A%0A${authorText}&font=arial&size=42&author_size=36`;
 }
 
 export default async function handler(req, res) {
