@@ -92,13 +92,16 @@ export default async function handler(req) {
         <html>
           <head>
             <meta property="fc:frame" content="vNext" />
-            <meta property="fc:frame:image" content="${pngImage}" />
+            <meta property="fc:frame:image" content="${process.env.NEXT_PUBLIC_BASE_URL}/api/zenFrame" />
             <meta property="fc:frame:button:1" content="Get Another" />
             <meta property="fc:frame:post_url" content="${process.env.NEXT_PUBLIC_BASE_URL}/api/zenFrame" />
             <meta property="fc:frame:button:2" content="Share" />
             <meta property="fc:frame:button:2:action" content="link" />
             <meta property="fc:frame:button:2:target" content="${shareLink}" />
           </head>
+          <body>
+            <img src="data:image/png;base64,${pngImage}" />
+          </body>
         </html>
         `,
         {
