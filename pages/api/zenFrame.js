@@ -1,7 +1,6 @@
 import axios from 'axios';
 
-const VERCEL_OG_API = `${process.env.NEXT_PUBLIC_BASE_URL}/api/og`;
-const DEFAULT_PLACEHOLDER_IMAGE = `${process.env.NEXT_PUBLIC_BASE_URL}/zen-placeholder.png`;
+const FALLBACK_IMAGE_URL = `${process.env.NEXT_PUBLIC_BASE_URL}/zen-placeholder.png`;
 
 async function fetchQuote() {
   const apiUrl = 'https://zenquotes.io/api/random';
@@ -35,8 +34,7 @@ export default async function handler(req, res) {
 
       console.log('Processing quote:', quoteText);
 
-      let imageUrl = `${VERCEL_OG_API}?text=${encodeURIComponent(quoteText)}&bgColor=softgreen&textColor=eggshellwhite&fontSize=bold`;
-      console.log('Generated OG Image URL:', imageUrl);
+      let imageUrl = FALLBACK_IMAGE_URL;
 
       if (quoteData.background) {
         try {
@@ -46,14 +44,14 @@ export default async function handler(req, res) {
             imageUrl = quoteData.background;
             console.log('Background image fetched successfully:', imageUrl);
           } else {
-            console.warn('ZenQuotes returned an invalid image URL. Using custom-generated image.');
+            console.warn('ZenQuotes returned an invalid image URL. Using fallback image.');
           }
         } catch (imageError) {
           console.error('Error fetching ZenQuotes background image:', imageError.response ? imageError.response.status : imageError.message);
-          console.warn('Using custom-generated image instead.');
+          console.warn('Using fallback image instead.');
         }
       } else {
-        console.warn('No background image provided by ZenQuotes. Using custom-generated image.');
+        console.warn('No background image provided by ZenQuotes. Using fallback image.');
       }
 
       const shareText = encodeURIComponent("Get your daily inspiration from this frame!");
@@ -80,7 +78,7 @@ export default async function handler(req, res) {
     }
   } catch (error) {
     console.error('Error processing request:', error.message);
-    const errorImageUrl = DEFAULT_PLACEHOLDER_IMAGE;
+    const errorImageUrl = FALLBACK_IMAGE_URL;
     return res.status(200).send(`
       <!DOCTYPE html>
       <html>
