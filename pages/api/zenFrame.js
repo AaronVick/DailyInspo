@@ -39,9 +39,19 @@ async function generatePngImage(quoteData) {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
+  // Use a more comprehensive font
+  ctx.font = '46px "Noto Sans", Arial, sans-serif';
+
+  console.log('Original quote:', quoteData.q); // Debug log
+
+  // Encode the text to ensure proper rendering
+  const encodedQuote = encodeURIComponent(quoteData.q);
+  const decodedQuote = decodeURIComponent(encodedQuote);
+
+  console.log('Encoded and decoded quote:', decodedQuote); // Debug log
+
   // Write quote
-  ctx.font = '46px Arial';
-  const words = quoteData.q.split(' ');
+  const words = decodedQuote.split(' ');
   let line = '';
   let y = height / 2 - 50;
   for (let i = 0; i < words.length; i++) {
@@ -58,7 +68,7 @@ async function generatePngImage(quoteData) {
   ctx.fillText(line, width / 2, y);
 
   // Write author
-  ctx.font = '34px Arial';
+  ctx.font = '34px "Noto Sans", Arial, sans-serif';
   ctx.fillStyle = '#666';
   ctx.fillText(`- ${quoteData.a}`, width / 2, y + 80);
 
