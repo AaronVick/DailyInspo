@@ -46,11 +46,11 @@ function wrapText(text, maxLength) {
 
 function generateImageUrl(quoteData) {
   const { q: quote, a: author } = quoteData;
-  const wrappedQuote = wrapText(quote, 30); // Adjust the number for desired line length
+  const wrappedQuote = wrapText(quote, 20); // Reduced to 20 characters per line for larger text
   const encodedQuote = encodeURIComponent(wrappedQuote);
   const encodedAuthor = encodeURIComponent(`- ${author}`);
   
-  return `https://dummyimage.com/1200x630/f0f8ea/333333.png&text=${encodedQuote}%0A%0A${encodedAuthor}&font=Arial&font-weight=bold&font-size=72`;
+  return `https://dummyimage.com/1200x630/f0f8ea/333333.png&text=${encodedQuote}%0A%0A${encodedAuthor}&font=Arial&font-weight=bold&font-size=60`;
 }
 
 export default async function handler(req, res) {
