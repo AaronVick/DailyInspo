@@ -7,7 +7,7 @@
     "dev": "next dev"
   },
   "dependencies": {
-    "canvas": "^2.11.2",
+    "@vercel/og": "^0.6.2",
     "axios": "^1.7.5",
     "next": "^12.3.4"
   }
