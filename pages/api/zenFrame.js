@@ -67,25 +67,28 @@ export default async function handler(req) {
         }
       );
 
-      const shareText = encodeURIComponent(`Get your daily inspiration!\n\nFrame by @aaronv\n\n`);
-      const shareLink = `https://warpcast.com/~/compose?text=${shareText}&embeds[]=${encodeURIComponent(process.env.NEXT_PUBLIC_BASE_URL)}`;
-
       return new Response(
         `<!DOCTYPE html>
           <html>
             <head>
               <meta property="fc:frame" content="vNext" />
-              <meta property="fc:frame:image" content="${image}" />
+              <meta property="fc:frame:image" content="${process.env.NEXT_PUBLIC_BASE_URL}/api/zenFrame" />
               <meta property="fc:frame:button:1" content="Get Another" />
               <meta property="fc:frame:post_url" content="${process.env.NEXT_PUBLIC_BASE_URL}/api/zenFrame" />
               <meta property="fc:frame:button:2" content="Share" />
               <meta property="fc:frame:button:2:action" content="link" />
-              <meta property="fc:frame:button:2:target" content="${shareLink}" />
+              <meta property="fc:frame:button:2:target" content="${encodeURIComponent(process.env.NEXT_PUBLIC_BASE_URL)}" />
+              <meta property="og:image" content="data:image/png;base64,${image.toString('base64')}" />
+              <meta property="og:title" content="Daily Inspiration" />
+              <meta property="og:description" content="${quoteData.q} - ${quoteData.a}" />
             </head>
+            <body>
+            </body>
           </html>`,
         {
           headers: {
             'Content-Type': 'text/html',
+            'Cache-Control': 'no-cache',
           },
         }
       );
@@ -104,10 +107,13 @@ export default async function handler(req) {
           <meta property="fc:frame:button:1" content="Try Again" />
           <meta property="fc:frame:post_url" content="${process.env.NEXT_PUBLIC_BASE_URL}/api/zenFrame" />
         </head>
+        <body>
+        </body>
       </html>`,
       {
         headers: {
           'Content-Type': 'text/html',
+          'Cache-Control': 'no-cache',
         },
       }
     );
