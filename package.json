@@ -8,7 +8,6 @@
   },
   "dependencies": {
     "axios": "^0.27.2",
-    "next": "12.3.4",
-    "canvas": "^2.11.2"
+    "next": "12.3.4"
   }
 }

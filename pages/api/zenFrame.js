@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { createCanvas } from 'canvas';
 
 const DEFAULT_PLACEHOLDER_IMAGE = `${process.env.NEXT_PUBLIC_BASE_URL}/zen-placeholder.png`;
@@ -31,16 +30,18 @@ async function generatePngImage(quoteData) {
   const ctx = canvas.getContext('2d');
 
   // Set background
-  ctx.fillStyle = '#f0f8ea';
+  ctx.fillStyle = '#f0f8ea';  // Soft green background color
   ctx.fillRect(0, 0, width, height);
 
   // Set text styles
-  ctx.fillStyle = '#333';
+  ctx.fillStyle = '#333';  // Dark text color
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
+  // Use Vercel-supported fonts
+  ctx.font = '46px Helvetica, Arial, sans-serif';
+
   // Write quote
-  ctx.font = '46px Arial';
   const words = quoteData.q.split(' ');
   let line = '';
   let y = height / 2 - 50;
@@ -58,7 +59,7 @@ async function generatePngImage(quoteData) {
   ctx.fillText(line, width / 2, y);
 
   // Write author
-  ctx.font = '34px Arial';
+  ctx.font = '34px Helvetica, Arial, sans-serif';
   ctx.fillStyle = '#666';
   ctx.fillText(`- ${quoteData.a}`, width / 2, y + 80);
 
@@ -71,7 +72,6 @@ export default async function handler(req, res) {
   console.log('User-Agent:', req.headers['user-agent']);
 
   try {
-    // Handle both GET and POST requests
     if (req.method === 'GET' || req.method === 'POST') {
       const quoteData = await fetchQuote();
       console.log('Processing quote:', `${quoteData.q} - ${quoteData.a}`);
