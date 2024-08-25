@@ -24,11 +24,9 @@ async function fetchQuote() {
 }
 
 function generateImageUrl(quoteData) {
-  const cloudName = 'demo'; // Use Cloudinary's demo account
   const text = `${quoteData.q} - ${quoteData.a}`;
   const encodedText = encodeURIComponent(text);
-  
-  return `https://res.cloudinary.com/${cloudName}/image/upload/w_1200,h_630,c_fit,co_rgb:333,g_center,l_text:Arial_32_bold:${encodedText}/v1/sample/fl_layer_apply,g_center,c_fit,w_1100/f_auto,q_auto/zen_background.jpg`;
+  return `https://via.placeholder.com/1200x630.png?text=${encodedText}`;
 }
 
 export default async function handler(req, res) {
