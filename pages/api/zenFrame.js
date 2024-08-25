@@ -23,12 +23,34 @@ async function fetchQuote() {
   }
 }
 
+function wrapText(text, maxLength) {
+  const words = text.split(' ');
+  const lines = [];
+  let currentLine = '';
+
+  words.forEach(word => {
+    if ((currentLine + word).length <= maxLength) {
+      currentLine += (currentLine ? ' ' : '') + word;
+    } else {
+      lines.push(currentLine);
+      currentLine = word;
+    }
+  });
+  
+  if (currentLine) {
+    lines.push(currentLine);
+  }
+
+  return lines.join('%0A');
+}
+
 function generateImageUrl(quoteData) {
   const { q: quote, a: author } = quoteData;
-  const encodedQuote = encodeURIComponent(quote.replace(/[^\w\s]/gi, '').replace(/\s+/g, ' '));
-  const encodedAuthor = encodeURIComponent(author.replace(/[^\w\s]/gi, '').replace(/\s+/g, ' '));
+  const wrappedQuote = wrapText(quote, 30); // Adjust the number for desired line length
+  const encodedQuote = encodeURIComponent(wrappedQuote);
+  const encodedAuthor = encodeURIComponent(`- ${author}`);
   
-  return `https://dummyimage.com/1200x630/f0f8ea/333333.png&text=${encodedQuote}|${encodedAuthor}&font=Arial&font-weight=bold&font-size=48`;
+  return `https://dummyimage.com/1200x630/f0f8ea/333333.png&text=${encodedQuote}%0A%0A${encodedAuthor}&font=Arial&font-weight=bold&font-size=72`;
 }
 
 export default async function handler(req, res) {
