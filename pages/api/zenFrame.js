@@ -5,7 +5,7 @@ const DEFAULT_PLACEHOLDER_IMAGE = `${process.env.NEXT_PUBLIC_BASE_URL}/zen-place
 
 async function fetchQuote() {
   const apiUrl = 'https://zenquotes.io/api/random';
-
+  
   console.log(`Fetching quote from ZenQuotes API: ${apiUrl}`);
   
   try {
@@ -31,16 +31,16 @@ async function generatePngImage(quoteData) {
   const ctx = canvas.getContext('2d');
 
   // Set background
-  ctx.fillStyle = '#f0f8ea'; // Soft green background
+  ctx.fillStyle = '#f0f8ea';
   ctx.fillRect(0, 0, width, height);
 
   // Set text styles
-  ctx.font = '46px sans-serif'; // Use a fallback font that is widely supported
   ctx.fillStyle = '#333';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
   // Write quote
+  ctx.font = '46px Arial';
   const words = quoteData.q.split(' ');
   let line = '';
   let y = height / 2 - 50;
@@ -58,7 +58,7 @@ async function generatePngImage(quoteData) {
   ctx.fillText(line, width / 2, y);
 
   // Write author
-  ctx.font = '34px sans-serif'; // Use a fallback font that is widely supported
+  ctx.font = '34px Arial';
   ctx.fillStyle = '#666';
   ctx.fillText(`- ${quoteData.a}`, width / 2, y + 80);
 
@@ -68,8 +68,10 @@ async function generatePngImage(quoteData) {
 export default async function handler(req, res) {
   console.log('Received request to zenFrame handler');
   console.log('Request method:', req.method);
+  console.log('User-Agent:', req.headers['user-agent']);
 
   try {
+    // Handle both GET and POST requests
     if (req.method === 'GET' || req.method === 'POST') {
       const quoteData = await fetchQuote();
       console.log('Processing quote:', `${quoteData.q} - ${quoteData.a}`);
