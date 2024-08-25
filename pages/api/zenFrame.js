@@ -1,15 +1,17 @@
 import axios from 'axios';
 import { ImageResponse } from '@vercel/og';
 
+const DEFAULT_PLACEHOLDER_IMAGE = `${process.env.NEXT_PUBLIC_BASE_URL}/zen-placeholder.png`;
+
 export const config = {
   runtime: 'experimental-edge',
 };
 
 async function fetchQuote() {
   const apiUrl = 'https://zenquotes.io/api/random';
-  
+
   console.log(`Fetching quote from ZenQuotes API: ${apiUrl}`);
-  
+
   try {
     const response = await axios.get(apiUrl, {
       headers: {
@@ -28,64 +30,69 @@ async function fetchQuote() {
 
 export default async function handler(req) {
   console.log('Received request to zenFrame handler');
+  console.log('Request method:', req.method);
+  console.log('User-Agent:', req.headers['user-agent']);
 
   try {
-    const quoteData = await fetchQuote();
-    console.log('Processing quote:', `${quoteData.q} - ${quoteData.a}`);
+    // Handle both GET and POST requests
+    if (req.method === 'GET' || req.method === 'POST') {
+      const quoteData = await fetchQuote();
+      console.log('Processing quote:', `${quoteData.q} - ${quoteData.a}`);
 
-    const shareText = encodeURIComponent(`Get your daily inspiration!\n\nFrame by @aaronv\n\n`);
-    const shareLink = `https://warpcast.com/~/compose?text=${shareText}&embeds[]=${encodeURIComponent(process.env.NEXT_PUBLIC_BASE_URL)}`;
-
-    const imageResponse = new ImageResponse(
-      (
-        <div
-          style={{
-            display: 'flex',
-            height: '100%',
-            width: '100%',
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: '#f0f8ea',
-            color: '#333',
-            fontSize: 46,
-            textAlign: 'center',
-            padding: '50px',
-            fontFamily: 'Arial, sans-serif',
-          }}
-        >
-          <div>
-            <p>{quoteData.q}</p>
-            <p style={{ marginTop: '20px', fontSize: 34, color: '#666' }}>
+      const image = new ImageResponse(
+        (
+          <div
+            style={{
+              width: '1200px',
+              height: '630px',
+              backgroundColor: '#f0f8ea',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              flexDirection: 'column',
+              textAlign: 'center',
+            }}
+          >
+            <div style={{ fontSize: '46px', color: '#333', marginBottom: '20px', fontFamily: 'Arial' }}>
+              {quoteData.q}
+            </div>
+            <div style={{ fontSize: '34px', color: '#666', fontFamily: 'Arial' }}>
               - {quoteData.a}
-            </p>
+            </div>
           </div>
-        </div>
-      ),
-      {
-        width: 1200,
-        height: 630,
-      }
-    );
+        ),
+        {
+          width: 1200,
+          height: 630,
+        }
+      );
 
-    return new Response(
-      `<!DOCTYPE html>
-      <html>
-        <head>
-          <meta property="fc:frame" content="vNext" />
-          <meta property="fc:frame:image" content="${imageResponse}" />
-          <meta property="fc:frame:button:1" content="Get Another" />
-          <meta property="fc:frame:post_url" content="${process.env.NEXT_PUBLIC_BASE_URL}/api/zenFrame" />
-          <meta property="fc:frame:button:2" content="Share" />
-          <meta property="fc:frame:button:2:action" content="link" />
-          <meta property="fc:frame:button:2:target" content="${shareLink}" />
-        </head>
-      </html>`,
-      {
-        headers: {
-          'Content-Type': 'text/html',
-        },
-      }
-    );
+      const shareText = encodeURIComponent(`Get your daily inspiration!\n\nFrame by @aaronv\n\n`);
+      const shareLink = `https://warpcast.com/~/compose?text=${shareText}&embeds[]=${encodeURIComponent(process.env.NEXT_PUBLIC_BASE_URL)}`;
+
+      return new Response(
+        `<!DOCTYPE html>
+          <html>
+            <head>
+              <meta property="fc:frame" content="vNext" />
+              <meta property="fc:frame:image" content="${image}" />
+              <meta property="fc:frame:button:1" content="Get Another" />
+              <meta property="fc:frame:post_url" content="${process.env.NEXT_PUBLIC_BASE_URL}/api/zenFrame" />
+              <meta property="fc:frame:button:2" content="Share" />
+              <meta property="fc:frame:button:2:action" content="link" />
+              <meta property="fc:frame:button:2:target" content="${shareLink}" />
+            </head>
+          </html>`,
+        {
+          headers: {
+            'Content-Type': 'text/html',
+          },
+        }
+      );
+    } else {
+      console.log('Method not allowed:', req.method);
+      return new Response(JSON.stringify({ error: `Method ${req.method} Not Allowed` }), { status: 405 });
+    }
   } catch (error) {
     console.error('Error processing request:', error.message);
     return new Response(
@@ -93,7 +100,7 @@ export default async function handler(req) {
       <html>
         <head>
           <meta property="fc:frame" content="vNext" />
-          <meta property="fc:frame:image" content="${process.env.NEXT_PUBLIC_BASE_URL}/zen-placeholder.png" />
+          <meta property="fc:frame:image" content="${DEFAULT_PLACEHOLDER_IMAGE}" />
           <meta property="fc:frame:button:1" content="Try Again" />
           <meta property="fc:frame:post_url" content="${process.env.NEXT_PUBLIC_BASE_URL}/api/zenFrame" />
         </head>
