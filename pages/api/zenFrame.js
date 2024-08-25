@@ -1,5 +1,4 @@
 import axios from 'axios';
-import sharp from 'sharp';
 
 const DEFAULT_PLACEHOLDER_IMAGE = `${process.env.NEXT_PUBLIC_BASE_URL}/zen-placeholder.png`;
 
@@ -24,31 +23,45 @@ async function fetchQuote() {
   }
 }
 
-async function generatePngImage(quoteData) {
-  const width = 1200;
-  const height = 630;
-  const quoteText = quoteData.q;
-  const authorText = `- ${quoteData.a}`;
-
-  const svgImage = `
-    <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-      <rect width="100%" height="100%" fill="#f0f8ea"/>
-      <text x="50%" y="40%" font-family="Arial, sans-serif" font-size="46" fill="#333" text-anchor="middle">${quoteText}</text>
-      <text x="50%" y="60%" font-family="Arial, sans-serif" font-size="34" fill="#666" text-anchor="middle">${authorText}</text>
-    </svg>
+function generateHtmlImage(quoteData) {
+  return `
+    <html>
+      <head>
+        <style>
+          body {
+            margin: 0;
+            padding: 0;
+            width: 1200px;
+            height: 630px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f8ea;
+            font-family: Arial, sans-serif;
+          }
+          .quote-container {
+            text-align: center;
+            padding: 20px;
+          }
+          .quote {
+            font-size: 46px;
+            color: #333;
+            margin-bottom: 20px;
+          }
+          .author {
+            font-size: 34px;
+            color: #666;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="quote-container">
+          <div class="quote">"${quoteData.q}"</div>
+          <div class="author">- ${quoteData.a}</div>
+        </div>
+      </body>
+    </html>
   `;
-
-  try {
-    const pngBuffer = await sharp(Buffer.from(svgImage))
-      .resize(width, height)
-      .png()
-      .toBuffer();
-
-    return pngBuffer;
-  } catch (error) {
-    console.error('Error generating PNG:', error);
-    throw new Error('Failed to generate PNG image');
-  }
 }
 
 export default async function handler(req, res) {
@@ -62,8 +75,7 @@ export default async function handler(req, res) {
       const quoteData = await fetchQuote();
       console.log('Processing quote:', `${quoteData.q} - ${quoteData.a}`);
 
-      const pngBuffer = await generatePngImage(quoteData);
-      const pngBase64 = pngBuffer.toString('base64');
+      const htmlImage = generateHtmlImage(quoteData);
 
       const shareText = encodeURIComponent(`Get your daily inspiration!\n\nFrame by @aaronv\n\n`);
       const shareLink = `https://warpcast.com/~/compose?text=${shareText}&embeds[]=${encodeURIComponent(process.env.NEXT_PUBLIC_BASE_URL)}`;
@@ -74,7 +86,7 @@ export default async function handler(req, res) {
         <html>
           <head>
             <meta property="fc:frame" content="vNext" />
-            <meta property="fc:frame:image" content="data:image/png;base64,${pngBase64}" />
+            <meta property="fc:frame:image" content="data:text/html;base64,${Buffer.from(htmlImage).toString('base64')}" />
             <meta property="fc:frame:button:1" content="Get Another" />
             <meta property="fc:frame:post_url" content="${process.env.NEXT_PUBLIC_BASE_URL}/api/zenFrame" />
             <meta property="fc:frame:button:2" content="Share" />
