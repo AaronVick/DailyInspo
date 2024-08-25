@@ -29,7 +29,6 @@ export default async function handler(req, res) {
   console.log('Request method:', req.method);
 
   try {
-    // Allow both GET and POST methods
     if (req.method === 'POST' || req.method === 'GET') {
       const quoteData = await fetchQuote();
       const quoteText = `${quoteData.q} - ${quoteData.a}`;
@@ -37,6 +36,7 @@ export default async function handler(req, res) {
       console.log('Processing quote:', quoteText);
 
       let imageUrl = `${VERCEL_OG_API}?text=${encodeURIComponent(quoteText)}&bgColor=softgreen&textColor=eggshellwhite&fontSize=bold`;
+      console.log('Generated OG Image URL:', imageUrl);
 
       if (quoteData.background) {
         try {
