@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+const VERCEL_OG_API = `${process.env.NEXT_PUBLIC_BASE_URL}/api/og`;
 const DEFAULT_PLACEHOLDER_IMAGE = `${process.env.NEXT_PUBLIC_BASE_URL}/zen-placeholder.png`;
 
 async function fetchQuote() {
@@ -23,52 +24,39 @@ async function fetchQuote() {
   }
 }
 
-function wrapText(text, maxLength) {
-  const words = text.split(' ');
-  const lines = [];
-  let currentLine = '';
-
-  words.forEach(word => {
-    if ((currentLine + word).length <= maxLength) {
-      currentLine += (currentLine ? ' ' : '') + word;
-    } else {
-      lines.push(currentLine);
-      currentLine = word;
-    }
-  });
-  
-  if (currentLine) {
-    lines.push(currentLine);
-  }
-
-  return lines.join('%0A');
-}
-
-function generateImageUrl(quoteData) {
-  const { q: quote, a: author } = quoteData;
-  const wrappedQuote = wrapText(quote, 20); // Reduced to 20 characters per line for larger text
-  const encodedQuote = encodeURIComponent(wrappedQuote);
-  const encodedAuthor = encodeURIComponent(`- ${author}`);
-  
-  return `https://dummyimage.com/1200x630/f0f8ea/333333.png&text=${encodedQuote}%0A%0A${encodedAuthor}&font=Arial&font-weight=bold&font-size=60`;
-}
-
 export default async function handler(req, res) {
   console.log('Received request to zenFrame handler');
   console.log('Request method:', req.method);
-  console.log('User-Agent:', req.headers['user-agent']);
 
   try {
-    // Handle both GET and POST requests
-    if (req.method === 'GET' || req.method === 'POST') {
+    if (req.method === 'POST') {
       const quoteData = await fetchQuote();
-      console.log('Processing quote:', `${quoteData.q} - ${quoteData.a}`);
+      const quoteText = `${quoteData.q} - ${quoteData.a}`;
 
-      const imageUrl = generateImageUrl(quoteData);
-      console.log('Generated image URL:', imageUrl);
+      console.log('Processing quote:', quoteText);
 
-      const shareText = encodeURIComponent(`Get your daily inspiration!\n\nFrame by @aaronv\n\n`);
-      const shareLink = `https://warpcast.com/~/compose?text=${shareText}&embeds[]=${encodeURIComponent(process.env.NEXT_PUBLIC_BASE_URL)}`;
+      let imageUrl = `${VERCEL_OG_API}?text=${encodeURIComponent(quoteText)}&bgColor=softgreen&textColor=eggshellwhite&fontSize=bold`;
+
+      if (quoteData.background) {
+        try {
+          const imageResponse = await axios.get(quoteData.background);
+          console.log(`Fetching background image: ${quoteData.background}`);
+          if (imageResponse.status === 200) {
+            imageUrl = quoteData.background;
+            console.log('Background image fetched successfully:', imageUrl);
+          } else {
+            console.warn('ZenQuotes returned an invalid image URL. Using custom-generated image.');
+          }
+        } catch (imageError) {
+          console.error('Error fetching ZenQuotes background image:', imageError.response ? imageError.response.status : imageError.message);
+          console.warn('Using custom-generated image instead.');
+        }
+      } else {
+        console.warn('No background image provided by ZenQuotes. Using custom-generated image.');
+      }
+
+      const shareText = encodeURIComponent("Get your daily inspiration from this frame!");
+      const shareLink = `https://warpcast.com/~/compose?text=${shareText}&embeds[]=${encodeURIComponent(imageUrl)}`;
 
       res.setHeader('Content-Type', 'text/html');
       return res.status(200).send(`
@@ -91,15 +79,24 @@ export default async function handler(req, res) {
     }
   } catch (error) {
     console.error('Error processing request:', error.message);
+    const errorImageUrl = DEFAULT_PLACEHOLDER_IMAGE;
     return res.status(200).send(`
       <!DOCTYPE html>
       <html>
         <head>
           <meta property="fc:frame" content="vNext" />
-          <meta property="fc:frame:image" content="${DEFAULT_PLACEHOLDER_IMAGE}" />
+          <meta property="fc:frame:image" content="${errorImageUrl}" />
           <meta property="fc:frame:button:1" content="Try Again" />
           <meta property="fc:frame:post_url" content="${process.env.NEXT_PUBLIC_BASE_URL}/api/zenFrame" />
         </head>
+        <body>
+          <h1>Error Fetching Inspiration</h1>
+          <p>Sorry, we couldn't fetch a new quote at this time. Please try again.</p>
+          <img src="${errorImageUrl}" alt="Error Placeholder">
+          <div>
+            <button onclick="window.location.href='/zen'">Try Again</button>
+          </div>
+        </body>
       </html>
     `);
   }
