@@ -2,7 +2,7 @@ import axios from 'axios';
 import { ImageResponse } from '@vercel/og';
 
 export const config = {
-  runtime: 'edge',
+  runtime: 'experimental-edge',
 };
 
 async function fetchQuote() {
