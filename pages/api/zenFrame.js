@@ -1,8 +1,5 @@
 import axios from 'axios';
-import { createCanvas, registerFont } from 'canvas';
-
-// Register a font that supports a wide range of characters
-registerFont('path/to/your/font.ttf', { family: 'Arial' });
+import { createCanvas } from 'canvas';
 
 const DEFAULT_PLACEHOLDER_IMAGE = `${process.env.NEXT_PUBLIC_BASE_URL}/zen-placeholder.png`;
 
@@ -34,22 +31,36 @@ async function generatePngImage(quoteData) {
   const ctx = canvas.getContext('2d');
 
   // Set background
-  ctx.fillStyle = '#f0f8ea';
+  ctx.fillStyle = '#f0f8ea'; // Soft green background
   ctx.fillRect(0, 0, width, height);
 
   // Set text styles
-  ctx.font = '46px "Arial"';
+  ctx.font = '46px Arial';
   ctx.fillStyle = '#333';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
   // Write quote
-  ctx.fillText(quoteData.q, width / 2, height / 2 - 50);
+  const words = quoteData.q.split(' ');
+  let line = '';
+  let y = height / 2 - 50;
+  for (let i = 0; i < words.length; i++) {
+    const testLine = line + words[i] + ' ';
+    const metrics = ctx.measureText(testLine);
+    if (metrics.width > width - 100 && i > 0) {
+      ctx.fillText(line, width / 2, y);
+      line = words[i] + ' ';
+      y += 60;
+    } else {
+      line = testLine;
+    }
+  }
+  ctx.fillText(line, width / 2, y);
 
   // Write author
-  ctx.font = '44px "Arial"';
+  ctx.font = '44px Arial';
   ctx.fillStyle = '#666';
-  ctx.fillText(`- ${quoteData.a}`, width / 2, height / 2 + 80);
+  ctx.fillText(`- ${quoteData.a}`, width / 2, y + 80);
 
   return canvas.toBuffer('image/png');
 }
@@ -57,6 +68,7 @@ async function generatePngImage(quoteData) {
 export default async function handler(req, res) {
   console.log('Received request to zenFrame handler');
   console.log('Request method:', req.method);
+  console.log('User-Agent:', req.headers['user-agent']);
 
   try {
     if (req.method === 'GET' || req.method === 'POST') {
