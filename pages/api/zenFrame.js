@@ -1,10 +1,11 @@
 import axios from 'axios';
+import { createCanvas } from 'canvas';
 
-const FALLBACK_IMAGE_URL = `${process.env.NEXT_PUBLIC_BASE_URL}/zen-placeholder.png`;
+const DEFAULT_PLACEHOLDER_IMAGE = `${process.env.NEXT_PUBLIC_BASE_URL}/zen-placeholder.png`;
 
 async function fetchQuote() {
   const apiUrl = 'https://zenquotes.io/api/random';
-
+  
   console.log(`Fetching quote from ZenQuotes API: ${apiUrl}`);
   
   try {
@@ -23,39 +24,63 @@ async function fetchQuote() {
   }
 }
 
+async function generatePngImage(quoteData) {
+  const width = 1200;
+  const height = 630;
+  const canvas = createCanvas(width, height);
+  const ctx = canvas.getContext('2d');
+
+  // Set background
+  ctx.fillStyle = '#f0f8ea';
+  ctx.fillRect(0, 0, width, height);
+
+  // Set text styles
+  ctx.fillStyle = '#333';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  // Write quote
+  ctx.font = '46px Arial';
+  const words = quoteData.q.split(' ');
+  let line = '';
+  let y = height / 2 - 50;
+  for (let i = 0; i < words.length; i++) {
+    const testLine = line + words[i] + ' ';
+    const metrics = ctx.measureText(testLine);
+    if (metrics.width > width - 100 && i > 0) {
+      ctx.fillText(line, width / 2, y);
+      line = words[i] + ' ';
+      y += 60;
+    } else {
+      line = testLine;
+    }
+  }
+  ctx.fillText(line, width / 2, y);
+
+  // Write author
+  ctx.font = '34px Arial';
+  ctx.fillStyle = '#666';
+  ctx.fillText(`- ${quoteData.a}`, width / 2, y + 80);
+
+  return canvas.toBuffer('image/png');
+}
+
 export default async function handler(req, res) {
   console.log('Received request to zenFrame handler');
   console.log('Request method:', req.method);
+  console.log('User-Agent:', req.headers['user-agent']);
 
   try {
-    if (req.method === 'POST' || req.method === 'GET') {
+    // Handle both GET and POST requests
+    if (req.method === 'GET' || req.method === 'POST') {
       const quoteData = await fetchQuote();
-      const quoteText = `${quoteData.q} - ${quoteData.a}`;
+      console.log('Processing quote:', `${quoteData.q} - ${quoteData.a}`);
 
-      console.log('Processing quote:', quoteText);
+      const pngBuffer = await generatePngImage(quoteData);
+      const pngBase64 = pngBuffer.toString('base64');
 
-      let imageUrl = FALLBACK_IMAGE_URL;
-
-      if (quoteData.background) {
-        try {
-          const imageResponse = await axios.get(quoteData.background);
-          console.log(`Fetching background image: ${quoteData.background}`);
-          if (imageResponse.status === 200) {
-            imageUrl = quoteData.background;
-            console.log('Background image fetched successfully:', imageUrl);
-          } else {
-            console.warn('ZenQuotes returned an invalid image URL. Using fallback image.');
-          }
-        } catch (imageError) {
-          console.error('Error fetching ZenQuotes background image:', imageError.response ? imageError.response.status : imageError.message);
-          console.warn('Using fallback image instead.');
-        }
-      } else {
-        console.warn('No background image provided by ZenQuotes. Using fallback image.');
-      }
-
-      const shareText = encodeURIComponent("Get your daily inspiration from this frame!");
-      const shareLink = `https://warpcast.com/~/compose?text=${shareText}&embeds[]=${encodeURIComponent(imageUrl)}`;
+      const shareText = encodeURIComponent(`Get your daily inspiration!\n\nFrame by @aaronv\n\n`);
+      const shareLink = `https://warpcast.com/~/compose?text=${shareText}&embeds[]=${encodeURIComponent(process.env.NEXT_PUBLIC_BASE_URL)}`;
 
       res.setHeader('Content-Type', 'text/html');
       return res.status(200).send(`
@@ -63,7 +88,7 @@ export default async function handler(req, res) {
         <html>
           <head>
             <meta property="fc:frame" content="vNext" />
-            <meta property="fc:frame:image" content="${imageUrl}" />
+            <meta property="fc:frame:image" content="data:image/png;base64,${pngBase64}" />
             <meta property="fc:frame:button:1" content="Get Another" />
             <meta property="fc:frame:post_url" content="${process.env.NEXT_PUBLIC_BASE_URL}/api/zenFrame" />
             <meta property="fc:frame:button:2" content="Share" />
@@ -78,24 +103,15 @@ export default async function handler(req, res) {
     }
   } catch (error) {
     console.error('Error processing request:', error.message);
-    const errorImageUrl = FALLBACK_IMAGE_URL;
     return res.status(200).send(`
       <!DOCTYPE html>
       <html>
         <head>
           <meta property="fc:frame" content="vNext" />
-          <meta property="fc:frame:image" content="${errorImageUrl}" />
+          <meta property="fc:frame:image" content="${DEFAULT_PLACEHOLDER_IMAGE}" />
           <meta property="fc:frame:button:1" content="Try Again" />
           <meta property="fc:frame:post_url" content="${process.env.NEXT_PUBLIC_BASE_URL}/api/zenFrame" />
         </head>
-        <body>
-          <h1>Error Fetching Inspiration</h1>
-          <p>Sorry, we couldn't fetch a new quote at this time. Please try again.</p>
-          <img src="${errorImageUrl}" alt="Error Placeholder">
-          <div>
-            <button onclick="window.location.href='/zen'">Try Again</button>
-          </div>
-        </body>
       </html>
     `);
   }
