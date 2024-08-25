@@ -45,14 +45,14 @@ function wrapText(text, maxLength) {
 }
 
 function generateImageUrl(quoteData) {
-  const wrappedQuote = wrapText(quoteData.q, 20); // Reduced to 20 characters per line for larger text
+  const wrappedQuote = wrapText(quoteData.q, 12); // Drastically reduced to 12 characters per line for much larger text
   const formattedQuote = wrappedQuote.join('%0A');
   const authorText = `- ${quoteData.a}`;
   
   const encodedText = encodeURIComponent(`${formattedQuote}%0A%0A${authorText}`);
   
   // Using via.placeholder.com with custom text formatting and larger dimensions
-  return `https://via.placeholder.com/800x600/f0f8ea/333333?text=${encodedText}`;
+  return `https://via.placeholder.com/1200x630/f0f8ea/333333?text=${encodedText}`;
 }
 
 export default async function handler(req, res) {
