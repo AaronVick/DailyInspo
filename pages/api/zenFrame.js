@@ -5,7 +5,7 @@ const DEFAULT_PLACEHOLDER_IMAGE = `${process.env.NEXT_PUBLIC_BASE_URL}/zen-place
 
 async function fetchQuote() {
   const apiUrl = 'https://zenquotes.io/api/random';
-  
+
   console.log(`Fetching quote from ZenQuotes API: ${apiUrl}`);
   
   try {
@@ -29,7 +29,8 @@ export default async function handler(req, res) {
   console.log('Request method:', req.method);
 
   try {
-    if (req.method === 'POST') {
+    // Allow both GET and POST methods
+    if (req.method === 'POST' || req.method === 'GET') {
       const quoteData = await fetchQuote();
       const quoteText = `${quoteData.q} - ${quoteData.a}`;
 
