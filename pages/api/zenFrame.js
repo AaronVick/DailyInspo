@@ -24,9 +24,11 @@ async function fetchQuote() {
 }
 
 function generateImageUrl(quoteData) {
-  const text = `${quoteData.q} - ${quoteData.a}`;
-  const encodedText = encodeURIComponent(text);
-  return `https://via.placeholder.com/1200x630.png?text=${encodedText}`;
+  const quoteText = encodeURIComponent(quoteData.q);
+  const authorText = encodeURIComponent(`- ${quoteData.a}`);
+  
+  // Using placehold.co for more formatting options
+  return `https://placehold.co/1200x630/f0f8ea/333333.png?text=${quoteText}%0A%0A${authorText}&font=arial&size=32&lineheight=1.5`;
 }
 
 export default async function handler(req, res) {
