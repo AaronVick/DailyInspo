@@ -79,30 +79,22 @@ export default async function handler(req) {
         }
       );
 
-      const imageBase64 = await imageResponse.toBuffer().toString('base64');
-
-      const shareText = encodeURIComponent(
-        `Get your daily inspiration!\n\nFrame by @aaronv\n\n`
-      );
-      const shareLink = `https://warpcast.com/~/compose?text=${shareText}&embeds[]=${encodeURIComponent(
-        process.env.NEXT_PUBLIC_BASE_URL
-      )}`;
-
+      // Render the HTML with Farcaster meta tags
       return new Response(
         `
         <!DOCTYPE html>
         <html>
           <head>
             <meta property="fc:frame" content="vNext" />
-            <meta property="fc:frame:image" content="data:image/png;base64,${imageBase64}" />
+            <meta property="fc:frame:image" content="data:image/png;base64,${imageResponse}" />
             <meta property="fc:frame:button:1" content="Get Another" />
             <meta property="fc:frame:post_url" content="${process.env.NEXT_PUBLIC_BASE_URL}/api/zenFrame" />
             <meta property="fc:frame:button:2" content="Share" />
             <meta property="fc:frame:button:2:action" content="link" />
-            <meta property="fc:frame:button:2:target" content="${shareLink}" />
+            <meta property="fc:frame:button:2:target" content="https://warpcast.com/~/compose?text=Get%20your%20daily%20inspiration!%0A%0AFrame%20by%20@aaronv%0A%0A&embeds[]=${encodeURIComponent(process.env.NEXT_PUBLIC_BASE_URL)}" />
           </head>
         </html>
-        `,
+      `,
         {
           headers: {
             'Content-Type': 'text/html',
