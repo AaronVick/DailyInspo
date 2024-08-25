@@ -25,10 +25,10 @@ async function fetchQuote() {
 
 function generateImageUrl(quoteData) {
   const { q: quote, a: author } = quoteData;
-  const encodedQuote = encodeURIComponent(quote.replace(/\s+/g, '+'));
-  const encodedAuthor = encodeURIComponent(author.replace(/\s+/g, '+'));
+  const encodedQuote = encodeURIComponent(quote.replace(/[^\w\s]/gi, '').replace(/\s+/g, ' '));
+  const encodedAuthor = encodeURIComponent(author.replace(/[^\w\s]/gi, '').replace(/\s+/g, ' '));
   
-  return `https://dummyimage.com/1200x630/f0f8ea/333333.png&text=${encodedQuote}++-++${encodedAuthor}`;
+  return `https://dummyimage.com/1200x630/f0f8ea/333333.png&text=${encodedQuote}|${encodedAuthor}&font=Arial&font-weight=bold&font-size=48`;
 }
 
 export default async function handler(req, res) {
