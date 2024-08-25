@@ -57,7 +57,8 @@ export default async function handler(req, res) {
   console.log('User-Agent:', req.headers['user-agent']);
 
   try {
-    if (req.method === 'POST') {
+    // Handle both GET and POST requests
+    if (req.method === 'GET' || req.method === 'POST') {
       const quoteData = await fetchQuote();
       console.log('Processing quote:', `${quoteData.q} - ${quoteData.a}`);
 
