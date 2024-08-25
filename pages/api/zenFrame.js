@@ -1,8 +1,6 @@
 import axios from 'axios';
 import { ImageResponse } from '@vercel/og';
 
-const DEFAULT_PLACEHOLDER_IMAGE = `${process.env.NEXT_PUBLIC_BASE_URL}/zen-placeholder.png`;
-
 export const config = {
   runtime: 'experimental-edge',
 };
@@ -17,13 +15,16 @@ async function fetchQuote() {
       headers: {
         'User-Agent': 'Mozilla/5.0',
         'Content-Type': 'application/json',
-        'Origin': process.env.NEXT_PUBLIC_BASE_URL
-      }
+        'Origin': process.env.NEXT_PUBLIC_BASE_URL,
+      },
     });
     console.log('Quote fetched successfully:', response.data[0]);
     return response.data[0];
   } catch (error) {
-    console.error('Error fetching quote from ZenQuotes API:', error.response ? error.response.status : error.message);
+    console.error(
+      'Error fetching quote from ZenQuotes API:',
+      error.response ? error.response.status : error.message
+    );
     throw new Error('Failed to fetch quote');
   }
 }
@@ -31,15 +32,13 @@ async function fetchQuote() {
 export default async function handler(req) {
   console.log('Received request to zenFrame handler');
   console.log('Request method:', req.method);
-  console.log('User-Agent:', req.headers['user-agent']);
 
   try {
-    // Handle both GET and POST requests
     if (req.method === 'GET' || req.method === 'POST') {
       const quoteData = await fetchQuote();
       console.log('Processing quote:', `${quoteData.q} - ${quoteData.a}`);
 
-      const image = new ImageResponse(
+      const pngImage = new ImageResponse(
         (
           <div
             style={{
@@ -53,10 +52,23 @@ export default async function handler(req) {
               textAlign: 'center',
             }}
           >
-            <div style={{ fontSize: '46px', color: '#333', marginBottom: '20px', fontFamily: 'Arial' }}>
+            <div
+              style={{
+                fontSize: '46px',
+                color: '#333',
+                marginBottom: '20px',
+                fontFamily: 'Arial, sans-serif',
+              }}
+            >
               {quoteData.q}
             </div>
-            <div style={{ fontSize: '34px', color: '#666', fontFamily: 'Arial' }}>
+            <div
+              style={{
+                fontSize: '34px',
+                color: '#666',
+                fontFamily: 'Arial, sans-serif',
+              }}
+            >
               - {quoteData.a}
             </div>
           </div>
@@ -67,55 +79,43 @@ export default async function handler(req) {
         }
       );
 
+      const shareText = encodeURIComponent(
+        `Get your daily inspiration!\n\nFrame by @aaronv\n\n`
+      );
+      const shareLink = `https://warpcast.com/~/compose?text=${shareText}&embeds[]=${encodeURIComponent(
+        process.env.NEXT_PUBLIC_BASE_URL
+      )}`;
+
       return new Response(
-        `<!DOCTYPE html>
-          <html>
-            <head>
-              <meta property="fc:frame" content="vNext" />
-              <meta property="fc:frame:image" content="${process.env.NEXT_PUBLIC_BASE_URL}/api/zenFrame" />
-              <meta property="fc:frame:button:1" content="Get Another" />
-              <meta property="fc:frame:post_url" content="${process.env.NEXT_PUBLIC_BASE_URL}/api/zenFrame" />
-              <meta property="fc:frame:button:2" content="Share" />
-              <meta property="fc:frame:button:2:action" content="link" />
-              <meta property="fc:frame:button:2:target" content="${encodeURIComponent(process.env.NEXT_PUBLIC_BASE_URL)}" />
-              <meta property="og:image" content="data:image/png;base64,${image.toString('base64')}" />
-              <meta property="og:title" content="Daily Inspiration" />
-              <meta property="og:description" content="${quoteData.q} - ${quoteData.a}" />
-            </head>
-            <body>
-            </body>
-          </html>`,
+        `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta property="fc:frame" content="vNext" />
+            <meta property="fc:frame:image" content="${pngImage}" />
+            <meta property="fc:frame:button:1" content="Get Another" />
+            <meta property="fc:frame:post_url" content="${process.env.NEXT_PUBLIC_BASE_URL}/api/zenFrame" />
+            <meta property="fc:frame:button:2" content="Share" />
+            <meta property="fc:frame:button:2:action" content="link" />
+            <meta property="fc:frame:button:2:target" content="${shareLink}" />
+          </head>
+        </html>
+        `,
         {
           headers: {
             'Content-Type': 'text/html',
-            'Cache-Control': 'no-cache',
           },
         }
       );
     } else {
       console.log('Method not allowed:', req.method);
-      return new Response(JSON.stringify({ error: `Method ${req.method} Not Allowed` }), { status: 405 });
+      return new Response(
+        JSON.stringify({ error: `Method ${req.method} Not Allowed` }),
+        { status: 405 }
+      );
     }
   } catch (error) {
     console.error('Error processing request:', error.message);
-    return new Response(
-      `<!DOCTYPE html>
-      <html>
-        <head>
-          <meta property="fc:frame" content="vNext" />
-          <meta property="fc:frame:image" content="${DEFAULT_PLACEHOLDER_IMAGE}" />
-          <meta property="fc:frame:button:1" content="Try Again" />
-          <meta property="fc:frame:post_url" content="${process.env.NEXT_PUBLIC_BASE_URL}/api/zenFrame" />
-        </head>
-        <body>
-        </body>
-      </html>`,
-      {
-        headers: {
-          'Content-Type': 'text/html',
-          'Cache-Control': 'no-cache',
-        },
-      }
-    );
+    return new Response('Internal Server Error', { status: 500 });
   }
 }
