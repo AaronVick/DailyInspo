@@ -1,7 +1,6 @@
 import axios from 'axios';
 
 const DEFAULT_PLACEHOLDER_IMAGE = `${process.env.NEXT_PUBLIC_BASE_URL}/zen-placeholder.png`;
-const IMGBB_API_KEY = process.env.IMGBB_API_KEY; // You'll need to set this in your Vercel environment variables
 
 async function fetchQuote() {
   const apiUrl = 'https://zenquotes.io/api/random';
@@ -24,19 +23,10 @@ async function fetchQuote() {
   }
 }
 
-async function generateImageUrl(quoteData) {
+function generateImageUrl(quoteData) {
   const text = `${quoteData.q} - ${quoteData.a}`;
   const encodedText = encodeURIComponent(text);
-  const imageUrl = `https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}&image=https://placehold.co/1200x630/f0f8ea/333333?text=${encodedText}`;
-
-  try {
-    const response = await axios.post(imageUrl);
-    console.log('Image URL generated successfully');
-    return response.data.data.url;
-  } catch (error) {
-    console.error('Error generating image URL:', error.response ? error.response.status : error.message);
-    throw new Error('Failed to generate image URL');
-  }
+  return `https://dummyimage.com/1200x630/f0f8ea/333333.png&text=${encodedText}`;
 }
 
 export default async function handler(req, res) {
@@ -50,7 +40,8 @@ export default async function handler(req, res) {
       const quoteData = await fetchQuote();
       console.log('Processing quote:', `${quoteData.q} - ${quoteData.a}`);
 
-      const imageUrl = await generateImageUrl(quoteData);
+      const imageUrl = generateImageUrl(quoteData);
+      console.log('Generated image URL:', imageUrl);
 
       const shareText = encodeURIComponent(`Get your daily inspiration!\n\nFrame by @aaronv\n\n`);
       const shareLink = `https://warpcast.com/~/compose?text=${shareText}&embeds[]=${encodeURIComponent(process.env.NEXT_PUBLIC_BASE_URL)}`;
