@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { createCanvas } from 'canvas';
 
 const DEFAULT_PLACEHOLDER_IMAGE = `${process.env.NEXT_PUBLIC_BASE_URL}/zen-placeholder.png`;
 
@@ -24,45 +23,34 @@ async function fetchQuote() {
   }
 }
 
-async function generatePngImage(quoteData) {
-  const width = 1200;
-  const height = 630;
-  const canvas = createCanvas(width, height);
-  const ctx = canvas.getContext('2d');
+function wrapText(text, maxLength) {
+  const words = text.split(' ');
+  const lines = [];
+  let currentLine = '';
 
-  // Set background
-  ctx.fillStyle = '#f0f8ea';
-  ctx.fillRect(0, 0, width, height);
-
-  // Set text styles
-  ctx.fillStyle = '#333';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-
-  // Write quote
-  ctx.font = '46px Arial';
-  const words = quoteData.q.split(' ');
-  let line = '';
-  let y = height / 2 - 50;
-  for (let i = 0; i < words.length; i++) {
-    const testLine = line + words[i] + ' ';
-    const metrics = ctx.measureText(testLine);
-    if (metrics.width > width - 100 && i > 0) {
-      ctx.fillText(line, width / 2, y);
-      line = words[i] + ' ';
-      y += 60;
+  words.forEach(word => {
+    if ((currentLine + word).length <= maxLength) {
+      currentLine += (currentLine ? ' ' : '') + word;
     } else {
-      line = testLine;
+      lines.push(currentLine);
+      currentLine = word;
     }
+  });
+  
+  if (currentLine) {
+    lines.push(currentLine);
   }
-  ctx.fillText(line, width / 2, y);
 
-  // Write author
-  ctx.font = '34px Arial';
-  ctx.fillStyle = '#666';
-  ctx.fillText(`- ${quoteData.a}`, width / 2, y + 80);
+  return lines.join('%0A');
+}
 
-  return canvas.toBuffer('image/png');
+function generateImageUrl(quoteData) {
+  const { q: quote, a: author } = quoteData;
+  const wrappedQuote = wrapText(quote, 20); // Reduced to 20 characters per line for larger text
+  const encodedQuote = encodeURIComponent(wrappedQuote);
+  const encodedAuthor = encodeURIComponent(`- ${author}`);
+  
+  return `https://dummyimage.com/1200x630/f0f8ea/333333.png&text=${encodedQuote}%0A%0A${encodedAuthor}&font=Arial&font-weight=bold&font-size=60`;
 }
 
 export default async function handler(req, res) {
@@ -76,8 +64,8 @@ export default async function handler(req, res) {
       const quoteData = await fetchQuote();
       console.log('Processing quote:', `${quoteData.q} - ${quoteData.a}`);
 
-      const pngBuffer = await generatePngImage(quoteData);
-      const pngBase64 = pngBuffer.toString('base64');
+      const imageUrl = generateImageUrl(quoteData);
+      console.log('Generated image URL:', imageUrl);
 
       const shareText = encodeURIComponent(`Get your daily inspiration!\n\nFrame by @aaronv\n\n`);
       const shareLink = `https://warpcast.com/~/compose?text=${shareText}&embeds[]=${encodeURIComponent(process.env.NEXT_PUBLIC_BASE_URL)}`;
@@ -88,7 +76,7 @@ export default async function handler(req, res) {
         <html>
           <head>
             <meta property="fc:frame" content="vNext" />
-            <meta property="fc:frame:image" content="data:image/png;base64,${pngBase64}" />
+            <meta property="fc:frame:image" content="${imageUrl}" />
             <meta property="fc:frame:button:1" content="Get Another" />
             <meta property="fc:frame:post_url" content="${process.env.NEXT_PUBLIC_BASE_URL}/api/zenFrame" />
             <meta property="fc:frame:button:2" content="Share" />
