@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { createCanvas } from 'canvas';
+import { createCanvas, loadImage, registerFont } from 'canvas';
 
 const DEFAULT_PLACEHOLDER_IMAGE = `${process.env.NEXT_PUBLIC_BASE_URL}/zen-placeholder.png`;
 
@@ -31,13 +31,15 @@ async function generatePngImage(quoteData) {
   ctx.fillStyle = '#f0f8ea';
   ctx.fillRect(0, 0, width, height);
 
+  // Register the font
+  ctx.font = '46px Arial, sans-serif'; // Using Vercel-supported font
+
   // Set text styles
   ctx.fillStyle = '#333';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
   // Write quote
-  ctx.font = '46px Arial';
   const words = quoteData.q.split(' ');
   let line = '';
   let y = height / 2 - 50;
@@ -55,7 +57,7 @@ async function generatePngImage(quoteData) {
   ctx.fillText(line, width / 2, y);
 
   // Write author
-  ctx.font = '34px Arial';
+  ctx.font = '34px Arial, sans-serif';
   ctx.fillStyle = '#666';
   ctx.fillText(`- ${quoteData.a}`, width / 2, y + 80);
 
