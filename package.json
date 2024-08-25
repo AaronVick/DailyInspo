@@ -4,7 +4,8 @@
   "scripts": {
     "build": "next build",
     "start": "next start",
-    "dev": "next dev"
+    "dev": "next dev",
+    "postinstall": "node-pre-gyp rebuild -C ./node_modules/canvas"
   },
   "dependencies": {
     "axios": "^0.27.2",
