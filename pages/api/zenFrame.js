@@ -23,46 +23,11 @@ async function fetchQuote() {
   }
 }
 
-function generateHTML(quoteData) {
+function generateImageUrl(quoteData) {
   const { q: quote, a: author } = quoteData;
-  return `
-    <html>
-      <head>
-        <style>
-          body {
-            margin: 0;
-            padding: 0;
-            width: 1200px;
-            height: 630px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #f0f8ea;
-            font-family: Arial, sans-serif;
-          }
-          .quote-container {
-            text-align: center;
-            padding: 20px;
-          }
-          .quote {
-            font-size: 48px;
-            color: #333333;
-            margin-bottom: 20px;
-          }
-          .author {
-            font-size: 36px;
-            color: #666666;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="quote-container">
-          <div class="quote">"${quote}"</div>
-          <div class="author">- ${author}</div>
-        </div>
-      </body>
-    </html>
-  `;
+  const encodedText = encodeURIComponent(`${quote}\n\n- ${author}`);
+  
+  return `https://cataas.com/cat/says/${encodedText}?size=50&color=white&background=f0f8ea&width=1200&height=630`;
 }
 
 export default async function handler(req, res) {
@@ -76,8 +41,8 @@ export default async function handler(req, res) {
       const quoteData = await fetchQuote();
       console.log('Processing quote:', `${quoteData.q} - ${quoteData.a}`);
 
-      const htmlContent = generateHTML(quoteData);
-      const encodedHtml = Buffer.from(htmlContent).toString('base64');
+      const imageUrl = generateImageUrl(quoteData);
+      console.log('Generated image URL:', imageUrl);
 
       const shareText = encodeURIComponent(`Get your daily inspiration!\n\nFrame by @aaronv\n\n`);
       const shareLink = `https://warpcast.com/~/compose?text=${shareText}&embeds[]=${encodeURIComponent(process.env.NEXT_PUBLIC_BASE_URL)}`;
@@ -88,7 +53,7 @@ export default async function handler(req, res) {
         <html>
           <head>
             <meta property="fc:frame" content="vNext" />
-            <meta property="fc:frame:image" content="data:text/html;base64,${encodedHtml}" />
+            <meta property="fc:frame:image" content="${imageUrl}" />
             <meta property="fc:frame:button:1" content="Get Another" />
             <meta property="fc:frame:post_url" content="${process.env.NEXT_PUBLIC_BASE_URL}/api/zenFrame" />
             <meta property="fc:frame:button:2" content="Share" />
