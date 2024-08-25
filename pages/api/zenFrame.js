@@ -41,15 +41,18 @@ function wrapText(text, maxLength) {
     lines.push(currentLine);
   }
 
-  return lines.join('\n');
+  return lines;
 }
 
 function generateImageUrl(quoteData) {
-  const wrappedQuote = wrapText(quoteData.q, 40); // Adjust 40 as needed for optimal line length
-  const quoteText = encodeURIComponent(wrappedQuote);
-  const authorText = encodeURIComponent(`- ${quoteData.a}`);
+  const wrappedQuote = wrapText(quoteData.q, 30); // Adjust 30 as needed for optimal line length
+  const formattedQuote = wrappedQuote.join('%0A');
+  const authorText = `- ${quoteData.a}`;
   
-  return `https://placeholderapi.com/1200x630/f0f8ea/333333?text=${quoteText}%0A%0A${authorText}&font=arial&size=42&author_size=36`;
+  const encodedText = encodeURIComponent(`${formattedQuote}%0A%0A${authorText}`);
+  
+  // Using via.placeholder.com with custom text formatting
+  return `https://via.placeholder.com/1200x630/f0f8ea/333333?text=${encodedText}`;
 }
 
 export default async function handler(req, res) {
