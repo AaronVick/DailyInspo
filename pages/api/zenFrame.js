@@ -38,29 +38,16 @@ async function generatePngImage(quoteData) {
   ctx.fillStyle = '#333';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.font = '46px sans-serif';
+  ctx.font = '46px Arial'; // Using Arial which is widely available
 
   // Write quote
-  const words = quoteData.q.split(' ');
-  let line = '';
-  let y = height / 2 - 50;
-  for (let i = 0; i < words.length; i++) {
-    const testLine = line + words[i] + ' ';
-    const metrics = ctx.measureText(testLine);
-    if (metrics.width > width - 100 && i > 0) {
-      ctx.fillText(line, width / 2, y);
-      line = words[i] + ' ';
-      y += 60;
-    } else {
-      line = testLine;
-    }
-  }
-  ctx.fillText(line, width / 2, y);
+  const quoteText = "Test Quote"; // Simple test to see if basic text renders
+  ctx.fillText(quoteText, width / 2, height / 2);
 
   // Write author
-  ctx.font = '34px sans-serif';
+  ctx.font = '34px Arial';
   ctx.fillStyle = '#666';
-  ctx.fillText(`- ${quoteData.a}`, width / 2, y + 80);
+  ctx.fillText("- Test Author", width / 2, height / 2 + 60);
 
   return canvas.toBuffer('image/png');
 }
